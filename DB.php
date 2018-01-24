@@ -3,9 +3,9 @@
 class DB
 {
 	private $host = 'localhost';
-	private $user = 'root';
+	private $user = '';
 	private $pass = '';
-	private $dbName = 'usos';
+	private $dbName = '';
 
 	private $log = true;
 	private $connection;

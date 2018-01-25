@@ -3,9 +3,10 @@
 class DB
 {
 	private $host = 'localhost';
-	private $user = '';
+	private $user = 'root';
 	private $pass = '';
-	private $dbName = '';
+	private $dbName = 'usos';
+	private $tablePrefix = '';
 
 	private $log = true;
 	private $connection;
@@ -14,7 +15,7 @@ class DB
 	private function Log($msg)
 	{
 		if($this->log == true) {
-			file_put_contents("db.txt", date("Y.m.d H:i")." $msg".PHP_EOL, FILE_APPEND);
+			file_put_contents("db.txt", date("Y.m.d H:i")." $this->user@$this->host : $msg".PHP_EOL, FILE_APPEND);
 		}
 	}
 
@@ -37,10 +38,9 @@ class DB
 
 	public function Query($query)
 	{
-		// TODO bind and escape
-		$result = $this->connection->query($query);
-		$this->Log("Query executed on $this->user@$this->host: $query");
-		return $result;
+		// TODO bind and escape		
+		$this->Log("Query executed: $query");
+		return $result = $this->connection->query($query);
 	}
 
 	public function CreateTable($table, $arr)
@@ -51,14 +51,28 @@ class DB
 			$query.="`$name` $params,";
 		}
 		$query = substr($query, 0, strlen($query)-1);
-		$query.=");";
+		$query.=") CHARACTER SET utf8 COLLATE utf8_polish_ci;";
 
+		$this->Log("Table $table created");
 		return $this->Query($query);
 	}
 
 	public function DropTable($table)
 	{
-		return $this->Query("DROP TABLE $table");
+		$this->Log("Table $table dropped");
+		return $this->Query("DROP TABLE IF EXISTS $table");
+	}
+
+	public function CreateView($view, $query)
+	{
+		$this->Log("View $view created");
+		return $this->Query("CREATE VIEW IF NOT EXISTS $view AS $query");
+	}
+
+	public function DropView($view)
+	{
+		$this->Log("View $view dropped");
+		return $this->Query("DROP VIEW IF EXISTS $view");
 	}
 
 	public function Insert($table, $arr)
@@ -71,11 +85,12 @@ class DB
 		$query.=") VALUES(";
 
 		foreach($arr as $col => $val) {
-			$query.="$val,";
+			$query.="'$val',";
 		}
 		$query = substr($query, 0, strlen($query)-1);
 		$query.=");";
 
+		$this->Log("Data inserted into $table");
 		return $this->Query($query);
 	}
 

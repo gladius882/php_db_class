@@ -12,13 +12,6 @@ class DB
 	private $connection;
 	private $valid;
 
-	private function Log($msg)
-	{
-		if($this->log == true) {
-			file_put_contents("db.txt", date("Y.m.d H:i")." $this->user@$this->host : $msg".PHP_EOL, FILE_APPEND);
-		}
-	}
-
 	public function __construct()
 	{
 		$this->Connect($this->host, $this->user, $this->pass, $this->dbName);
@@ -36,11 +29,17 @@ class DB
 		}
 	}
 
+	public function SimpleQuery($query)
+	{
+		$this->Log("Query executed: $query");
+		return $this->connection->query($query);
+	}
+
 	public function Query($query)
 	{
 		// TODO bind and escape		
 		$this->Log("Query executed: $query");
-		return $result = $this->connection->query($query);
+		return $this->connection->query($query);
 	}
 
 	public function CreateTable($table, $arr)
@@ -48,13 +47,18 @@ class DB
 		$query = "CREATE TABLE IF NOT EXISTS `$table`(";
 		
 		foreach($arr as $name => $params) {
-			$query.="`$name` $params,";
+			$query.="$name $params,";
 		}
 		$query = substr($query, 0, strlen($query)-1);
 		$query.=") CHARACTER SET utf8 COLLATE utf8_polish_ci;";
 
 		$this->Log("Table $table created");
 		return $this->Query($query);
+	}
+
+	public function CreateRelation($table1, $column1, $table2, $column2)
+	{
+		return $this->Query("ALTER TABLE $table1 ADD FOREIGN KEY($column1) REFERENCES $table2($column2)");
 	}
 
 	public function DropTable($table)
@@ -114,6 +118,13 @@ class DB
 	{
 		if($this->valid == true) {
 			$this->connection->close();
+		}
+	}
+
+	private function Log($msg)
+	{
+		if($this->log == true) {
+			file_put_contents("db.txt", date("Y.m.d H:i")." $this->user@$this->host : $msg".PHP_EOL, FILE_APPEND);
 		}
 	}
 }

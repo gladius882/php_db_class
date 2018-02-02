@@ -5,7 +5,7 @@ class DB
 	private $host = 'localhost';
 	private $user = 'root';
 	private $pass = '';
-	private $dbName = 'usos';
+	private $dbName = 'db';
 	private $tablePrefix = '';
 
 	private $log = true;
@@ -15,6 +15,13 @@ class DB
 	public function __construct()
 	{
 		$this->Connect($this->host, $this->user, $this->pass, $this->dbName);
+	}
+
+	public function __destruct()
+	{
+		if($this->valid) {
+			$this->connection->close();
+		}
 	}
 
 	public function Connect($host, $user, $pass, $dbName)
@@ -37,9 +44,15 @@ class DB
 
 	public function Query($query)
 	{
-		// TODO bind and escape		
+		// TODO bind
 		$this->Log("Query executed: $query");
 		return $this->connection->query($query);
+	}
+
+	public function Import($sqlFile)
+	{
+		$sql = file_get_contents($sqlFile);
+		return $this->connection->query($sql);
 	}
 
 	public function CreateTable($table, $arr)
@@ -100,7 +113,7 @@ class DB
 
 	public function setCharset($charset)
 	{
-		$this->connection->query("SET CHARSET $charset");
+		return $this->connection->query("SET CHARSET $charset");
 	}
 
 	public function CheckConnection()
